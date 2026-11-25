@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service // Comunica a spring che la classe seguente è una componente iniettabile, così che qaundo incontra un costruttore che si aspetta una variabile da iniettare di questo tipo, capisce che deve creare  einiettare un oggetto di questo tipo
 public class InMemoryTropicoService implements TropicoService {
@@ -28,25 +29,28 @@ public class InMemoryTropicoService implements TropicoService {
     }
 
     @Override
-    public Resource findById(@PathVariable int id) { // L'annotazione dice: il parametro id va preso dalla parte del path identificata da "id"
-        return resources.get(id);
+    public Optional<Resource> findById(@PathVariable int id) { // L'annotazione dice: il parametro id va preso dalla parte del path identificata da "id"
+        return Optional.ofNullable(resources.get(id));
     }
 
     @Override
-    public Resource update(@PathVariable int id, @RequestBody Resource newResource) {
+    public boolean update(@PathVariable int id, @RequestBody Resource newResource) {
 
         Resource originResource = resources.get(id);
-
+        if (originResource == null) {
+            return false;
+        }
         originResource.setName(newResource.getName());
         originResource.setBaseMarketPrice(newResource.getBaseMarketPrice());
         originResource.setProcessed(newResource.getProcessed());
 
-        return originResource;
+        return true;
     }
 
     @Override
-    public void delete(@PathVariable int id) {
-        resources.remove(id);
+    public boolean delete(@PathVariable int id) {
+        Resource old = resources.remove(id);
+        return old != null;
     }
 
     @Override

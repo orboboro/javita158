@@ -5,15 +5,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface TropicoService {
     Collection<Resource> getResources();
 
-    Resource findById(@PathVariable int id);
+    Optional<Resource> findById(@PathVariable int id);
 
-    Resource update(@PathVariable int id, @RequestBody Resource newResource);
+    boolean update(@PathVariable int id, @RequestBody Resource newResource);
 
-    void delete(@PathVariable int id);
+    boolean delete(@PathVariable int id);
 
     Resource create(@RequestBody Resource r);
 }

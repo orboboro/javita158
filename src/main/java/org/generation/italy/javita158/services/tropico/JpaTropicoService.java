@@ -5,6 +5,7 @@ import org.generation.italy.javita158.repositories.tropico.ResourceRepository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class JpaTropicoService implements TropicoService {
 
@@ -17,26 +18,36 @@ public class JpaTropicoService implements TropicoService {
 
     @Override
     public Collection<Resource> getResources() {
-        return resRepo.;
+        return resRepo.findAll();
     }
 
     @Override
-    public Resource findById(int id) {
-        return null;
+    public Optional<Resource> findById(int id) {
+        return resRepo.findById(id);
     }
 
     @Override
-    public Resource update(int id, Resource newResource) {
-        return null;
+    public boolean update(int id, Resource newResource) {
+        Optional<Resource> toUpdate = resRepo.findById(id);
+        if (toUpdate.isEmpty()) {
+            return false;
+        }
+        resRepo.save(newResource);
+        return true;
     }
 
     @Override
-    public void delete(int id) {
-
+    public boolean delete(int id) {
+        Optional<Resource> toDelete = resRepo.findById(id);
+        if (toDelete.isEmpty()) {
+            return false;
+        }
+        resRepo.delete(toDelete.get());
+        return true;
     }
 
     @Override
     public Resource create(Resource r) {
-        return null;
+        return resRepo.save(r);
     }
 }
