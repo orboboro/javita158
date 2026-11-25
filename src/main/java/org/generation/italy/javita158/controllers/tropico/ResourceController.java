@@ -1,13 +1,15 @@
 package org.generation.italy.javita158.controllers.tropico;
 
+import org.generation.italy.javita158.dtos.tropico.ResourceDTO;
 import org.generation.italy.javita158.model.tropico.Resource;
+import org.generation.italy.javita158.services.tropico.InMemoryTropicoService;
+import org.generation.italy.javita158.services.tropico.TropicoService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/resource") // Questo controller si rende disponibile a ricevere tutte le chiamate che cominciano
@@ -15,50 +17,51 @@ import java.util.Map;
                                  // sono accettate da quali Controller)
 public class ResourceController {
 
-    private static int idGenerator = 3;
+    // BAD! private InMemoryTropicoService service = new InMemoryTropicoService();
+    private TropicoService service;
 
-    private static Map<Integer, Resource> resources = new HashMap<>(
-            Map.of(
-                    1, new Resource(1, "steel", BigDecimal.TWO, true),
-                    2, new Resource(2, "wood", BigDecimal.TWO, true)
-            ));
+    public ResourceController(TropicoService service){
+        this.service = service;
+    }
 
     @GetMapping // Questo metodo rispode alle get, ma se la richiesta chima solo l'indirizzo del controller risponde sempre questo
                 // metodo (volendo posso specificare l'indirizzo specifico a cui risponde questo metodo come parametro dell'annotazione)
     // Questo metodo ritornerà tutte le risorse
-    public Collection<Resource> getResources() {
-        return resources.values();
+    public ResponseEntity<Collection<ResourceDTO>> getResources() {
+        Collection<Resource> resCol = service.getResources();
+        Collection<ResourceDTO> dtoCol = resCol.stream().map(ResourceDTO::new).toList();
+        return ResponseEntity.ok(dtoCol);
     }
 
 
     // Questo metodo ritornerà una risorda con un certo id
     @GetMapping("/{id}")
-    public Resource findById (@PathVariable int id){
-        return resources.get(id);
+    public ResponseEntity<ResourceDTO> findById (@PathVariable int id){
+        Optional<Resource> or =  service.findById(id);
+        if(or.isEmpty()){
+            return ResponseEntity.notFound().build(); // design pattern "BUILDER"
+        }
+        Resource r = or.get();
+        ResourceDTO rd = new ResourceDTO(r);
+        return ResponseEntity.ok(rd);
     }
 
     @PutMapping("/{id}")
-    public Resource update (@PathVariable int id, @RequestBody Resource newResource) {
-        Resource originResource = resources.get(id);
-
-        originResource.setName(newResource.getName());
-        originResource.setBaseMarketPrice(newResource.getBaseMarketPrice());
-        originResource.setProcessed(newResource.getProcessed());
-
-        return originResource;
+    public ResponseEntity<Void> update (@PathVariable int id, @RequestBody Resource newResource) {
+        if(!service.update(id, newResource)){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
     public void delete (@PathVariable int id) {
-        resources.remove(id);
+        service.delete(id);
     }
 
     @PostMapping
     public Resource create (@RequestBody Resource r) {
-        int id = idGenerator++;
-        r.setId(id);
-        resources.put(id, r);
-        return r;
+        return service.create(r);
     }
 
 
