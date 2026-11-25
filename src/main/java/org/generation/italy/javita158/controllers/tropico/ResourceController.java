@@ -1,12 +1,11 @@
 package org.generation.italy.javita158.controllers.tropico;
 
 import org.generation.italy.javita158.model.tropico.Resource;
+import org.generation.italy.javita158.services.tropico.InMemoryTropicoService;
+import org.generation.italy.javita158.services.tropico.TropicoService;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resource") // Questo controller si rende disponibile a ricevere tutte le chiamate che cominciano
@@ -14,52 +13,39 @@ import java.util.Map;
                                  // sono accettate da quali Controller)
 public class ResourceController {
 
-    private static int idGenerator = 3;
-    private static Map<Integer, Resource> resources = new HashMap<>(
-            Map.of(
-                    1, new Resource(1, "steel", BigDecimal.TWO, true),
-                    2, new Resource(2, "coal", BigDecimal.ONE, false)
-                    )
-    );
+    //private InMemoryTropicoService service = new InMemoryTropicoService();  BAD
+    private TropicoService service;
 
+    public ResourceController(TropicoService service) {
+        this.service = service;
+    }
 
     @GetMapping // Questo metodo rispode alle get, ma se la richiesta chima solo l'indirizzo del controller risponde sempre questo
                 // metodo (volendo posso specificare l'indirizzo specifico a cui risponde questo metodo come parametro dell'annotazione)
     // Questo metodo ritorna tutte le risorse.
-    public Collection<Resource> getResources() {
-        return resources.values();
+    public Collection<Resource> getResources(TropicoService service) {
+        return service.getResources();
     }
 
     @GetMapping("/{id}") // Metodo che risponde a richieste con indirizzo "/api/resource/" + un id che gli specifichiamo
     // Questo metodo ritorna la risorsa con l'id specificato.
     public Resource findById(@PathVariable int id) { // L'annotazione dice: il parametro id va preso dalla parte del path identificata da "id"
-        return resources.get(id);
+        return service.findById(id);
     }
 
     @PutMapping("/{id}")
     public Resource update(@PathVariable int id, @RequestBody Resource newResource) {
-
-        Resource originResource = resources.get(id);
-
-        originResource.setName(newResource.getName());
-        originResource.setBaseMarketPrice(newResource.getBaseMarketPrice());
-        originResource.setProcessed(newResource.getProcessed());
-
-        return originResource;
+        return service.update(id, newResource);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id) {
-        resources.remove(id);
+        service.delete(id);
     }
 
     @PostMapping
     public Resource create(@RequestBody Resource r) { // Il parametro va preso dal body della richiesta
-
-        int id = idGenerator++;
-        r.setId(id);
-        resources.put(id, r);
-        return r;
+        return service.create(r);
     }
 
 
