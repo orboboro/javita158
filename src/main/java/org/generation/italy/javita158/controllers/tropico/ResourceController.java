@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -23,7 +24,7 @@ public class ResourceController {
         this.service = service;
     }
 
-    @GetMapping // Questo metodo rispode alle get, ma se la richiesta chima solo l'indirizzo del controller risponde sempre questo
+    @GetMapping // Questo metodo rispode alle get, ma se la richiesta chiama solo l'indirizzo del controller risponde sempre questo
                 // metodo (volendo posso specificare l'indirizzo specifico a cui risponde questo metodo come parametro dell'annotazione)
     // Questo metodo ritorna tutte le risorse.
     public ResponseEntity<Collection<ResourceDTO>> getResources(TropicoService service) {
@@ -62,7 +63,11 @@ public class ResourceController {
         return service.create(r);
     }
 
-
-
+    @GetMapping("/by-buildingtype")
+    public ResponseEntity<Collection<ResourceDTO>> findByProducedByBuildingType(@RequestParam List<String> names) {
+        Collection<Resource> resCol = service.getResourcesByBuildingType(names);
+        Collection<ResourceDTO> dtoCol = resCol.stream().map(r -> new ResourceDTO(r)).toList();
+        return ResponseEntity.ok(dtoCol);
+    }
 
 }

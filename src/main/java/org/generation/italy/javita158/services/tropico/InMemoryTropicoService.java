@@ -7,12 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-@Service // Comunica a spring che la classe seguente è una componente iniettabile, così che qaundo incontra un costruttore che si aspetta una variabile da iniettare di questo tipo, capisce che deve creare  einiettare un oggetto di questo tipo
 public class InMemoryTropicoService implements TropicoService {
 
     private static int idGenerator = 3;
@@ -60,5 +56,11 @@ public class InMemoryTropicoService implements TropicoService {
         r.setId(id);
         resources.put(id, r);
         return r;
+    }
+
+    // Implementazione fantoccio giusto per far compilare, tanto non userò mai questa implementazione del service
+    @Override
+    public Collection<Resource> getResourcesByBuildingType(List<String> names) {
+        return List.of();
     }
 }
