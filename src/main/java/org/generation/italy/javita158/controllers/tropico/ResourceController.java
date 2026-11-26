@@ -1,8 +1,9 @@
 package org.generation.italy.javita158.controllers.tropico;
 
+import org.generation.italy.javita158.dtos.tropico.FactionDTO;
 import org.generation.italy.javita158.dtos.tropico.ResourceDTO;
+import org.generation.italy.javita158.model.tropico.Faction;
 import org.generation.italy.javita158.model.tropico.Resource;
-import org.generation.italy.javita158.services.tropico.InMemoryTropicoService;
 import org.generation.italy.javita158.services.tropico.TropicoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,7 @@ public class ResourceController {
     // Questo metodo ritorna la risorsa con l'id specificato.
     //Non ritorniamo solo il DTO, ma anche il codice di risposta e una ResponseEntity ingloba entrambe le cose
     public ResponseEntity<ResourceDTO> findById(@PathVariable int id) { // L'annotazione dice: il parametro id va preso dalla parte del path identificata da "id"
-         Optional<Resource> or = service.findById(id);
+         Optional<Resource> or = service.findResourceById(id);
          if(or.isEmpty()) {
              //notFound() ritorna un builder (costruttore) di ResponseEntity e per darmi il ResponseEntity bisogna richiamare build()
              //dietro questa riga si nasconde un DesignPattern, chiamato Builder.
@@ -53,19 +54,24 @@ public class ResourceController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable int id, @RequestBody Resource newResource) {
-        if(!service.update(id, newResource)){
+        if(!service.updateResource(id, newResource)){
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok().build(); //se non gli passiamo nulla nell'ok ci vuole il build() dopo
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable int id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable int id) {
+        if (!service.deleteResource(id)) {
+            return ResponseEntity.notFound().build(); // 404 se l'ID non esiste
+        }
+        return ResponseEntity.noContent().build(); // 204 No Content (oppure .ok().build() per 200 OK)
     }
 
     @PostMapping
-    public Resource create(@RequestBody Resource r) { // Il parametro va preso dal body della richiesta
-        return service.create(r);
+    public ResponseEntity<ResourceDTO> create(@RequestBody Resource r) { // Il parametro va preso dal body della richiesta
+        Resource resource = service.createResource(r);
+        ResourceDTO rd = new ResourceDTO(resource);
+        return ResponseEntity.ok(rd);
     }
 }
