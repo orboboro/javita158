@@ -3,6 +3,7 @@ package org.generation.italy.javita158.controllers.tropico;
 import org.generation.italy.javita158.dtos.tropico.ResourceDTO;
 import org.generation.italy.javita158.model.tropico.Resource;
 import org.generation.italy.javita158.services.tropico.TropicoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class ResourceController {
     //private InMemoryTropicoService service = new InMemoryTropicoService();  BAD
     private final TropicoService service;
 
+    @Autowired // Constructor injection: Spring inietta le dipendenze (in questo caso l'annotazione è superflua)
     public ResourceController(TropicoService service) {
         this.service = service;
     }
