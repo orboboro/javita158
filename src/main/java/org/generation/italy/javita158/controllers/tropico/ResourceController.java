@@ -2,7 +2,6 @@ package org.generation.italy.javita158.controllers.tropico;
 
 import org.generation.italy.javita158.dtos.tropico.ResourceDTO;
 import org.generation.italy.javita158.model.tropico.Resource;
-import org.generation.italy.javita158.services.tropico.InMemoryTropicoService;
 import org.generation.italy.javita158.services.tropico.TropicoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,7 @@ import java.util.Optional;
 public class ResourceController {
 
     //private InMemoryTropicoService service = new InMemoryTropicoService();  BAD
-    private TropicoService service;
+    private final TropicoService service;
 
     public ResourceController(TropicoService service) {
         this.service = service;
@@ -26,10 +25,10 @@ public class ResourceController {
     @GetMapping // Questo metodo rispode alle get, ma se la richiesta chima solo l'indirizzo del controller risponde sempre questo
                 // metodo (volendo posso specificare l'indirizzo specifico a cui risponde questo metodo come parametro dell'annotazione)
     // Questo metodo ritorna tutte le risorse.
-    public ResponseEntity<Collection<ResourceDTO>> getResources(TropicoService service) {
+    public ResponseEntity<Collection<ResourceDTO>> getResources() {
         Collection<Resource> resCol = service.getResources();
         Collection<ResourceDTO> dtoCol = resCol.stream().map(ResourceDTO::new).toList();
-        return ResponseEntity.ok(dtoCol);
+        return ResponseEntity.ok().body(dtoCol); // Applica il design pattern 'builder'
     }
 
     @GetMapping("/{id}") // Metodo che risponde a richieste con indirizzo "/api/resource/" + un id che gli specifichiamo

@@ -2,14 +2,18 @@ package org.generation.italy.javita158.services.tropico;
 
 import org.generation.italy.javita158.model.tropico.Resource;
 import org.generation.italy.javita158.repositories.tropico.ResourceRepository;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
+@Service
+@Profile("jpa")
 public class JpaTropicoService implements TropicoService {
 
-    private ResourceRepository resRepo;
+    private final ResourceRepository resRepo;
 
     public JpaTropicoService(ResourceRepository resRepo) {
         this.resRepo = resRepo;
@@ -27,12 +31,17 @@ public class JpaTropicoService implements TropicoService {
     }
 
     @Override
+    @Transactional
     public boolean update(int id, Resource newResource) {
         Optional<Resource> toUpdate = resRepo.findById(id);
         if (toUpdate.isEmpty()) {
             return false;
         }
-        resRepo.save(newResource);
+        Resource existing = toUpdate.get();
+        existing.setName(newResource.getName());
+        existing.setBaseMarketPrice(newResource.getBaseMarketPrice());
+        existing.setProcessed(newResource.getProcessed());
+        resRepo.save(existing);
         return true;
     }
 

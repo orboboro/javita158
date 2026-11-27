@@ -1,10 +1,8 @@
 package org.generation.italy.javita158.services.tropico;
 
 import org.generation.italy.javita158.model.tropico.Resource;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -13,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service // Comunica a spring che la classe seguente è una componente iniettabile, così che qaundo incontra un costruttore che si aspetta una variabile da iniettare di questo tipo, capisce che deve creare  einiettare un oggetto di questo tipo
+@Profile("in-memory")
 public class InMemoryTropicoService implements TropicoService {
 
     private static int idGenerator = 3;
@@ -29,12 +28,12 @@ public class InMemoryTropicoService implements TropicoService {
     }
 
     @Override
-    public Optional<Resource> findById(@PathVariable int id) { // L'annotazione dice: il parametro id va preso dalla parte del path identificata da "id"
+    public Optional<Resource> findById(int id) {
         return Optional.ofNullable(resources.get(id));
     }
 
     @Override
-    public boolean update(@PathVariable int id, @RequestBody Resource newResource) {
+    public boolean update(int id, Resource newResource) {
 
         Resource originResource = resources.get(id);
         if (originResource == null) {
@@ -48,13 +47,13 @@ public class InMemoryTropicoService implements TropicoService {
     }
 
     @Override
-    public boolean delete(@PathVariable int id) {
+    public boolean delete(int id) {
         Resource old = resources.remove(id);
         return old != null;
     }
 
     @Override
-    public Resource create(@RequestBody Resource r) { // Il parametro va preso dal body della richiesta
+    public Resource create(Resource r) {
 
         int id = idGenerator++;
         r.setId(id);
