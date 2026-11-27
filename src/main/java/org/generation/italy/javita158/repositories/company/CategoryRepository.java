@@ -2,6 +2,8 @@ package org.generation.italy.javita158.repositories.company;
 
 import org.generation.italy.javita158.model.company.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -17,12 +19,20 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     List<Category> findByCategoryName(String name);
 
     // TODO CA2 [Livello 2 - DERIVATA]
-    // Cercare le categorie la cui description contiene String text, ignorando il caso.
+    // Cercare le categorie la cui description contiene String text, ignorando minuscole e maiuscole.
     // Restituire List<Category>, ordinata per categoryName crescente e poi id crescente.
+    List<Category> findByDescriptionContainingIgnoreCaseOrderByCategorynameAscIdAsc(String text);
 
     // TODO CA3 [Livello 3 - JPQL]
     // Riscrivere CA1 con @Query e un parametro nominato collegato da @Param.
     // Usare il nome Java Category e l'attributo categoryName. Confrontare gli id con CA1.
+    @Query("""
+            SELECT c
+            FROM Category c
+            WHERE c.categoryName = :categoryName
+                """
+    )
+    List<Category> findCategoriesByName(@Param("categoryName") String categoryName);
 
     // TODO CA4 [Livello 5 - JPQL, NOT EXISTS]
     // Restituire List<Category> delle categorie senza alcun prodotto, in ordine di id.
