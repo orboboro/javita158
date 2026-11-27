@@ -3,20 +3,26 @@ package org.generation.italy.javita158.repositories.company;
 import org.generation.italy.javita158.model.company.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 /** Prezzi, relazioni, paginazione e report. discontinued è Integer (0/1), non Boolean. */
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     // TODO PR1 [Livello 1 - DERIVATA]
     // Dato BigDecimal threshold, trovare i prodotti con unitPrice strettamente minore.
     // Restituire List<Product>. Un prodotto esattamente sulla soglia va escluso.
+    List<Product> findByUnitPriceLessThan(BigDecimal threshold);
 
     // TODO PR2 [Livello 1 - DERIVATA]
     // Dato Integer status, restituire List<Product> con quel valore di discontinued.
     // Provare 0 (in vendita) e 1 (ritirato). Non usare True/False nel nome del metodo.
+    List<Product> findByDiscontinued(Integer status);
 
     // TODO PR3 [Livello 2 - DERIVATA]
     // Dati BigDecimal minimum e maximum, cercare unitPrice fra gli estremi INCLUSI.
     // Restituire List<Product>, ordinata per unitPrice crescente e poi id crescente.
+    List<Product> findByUnitPriceBetweenOrderByUnitPriceAscIdAsc(BigDecimal minimum, BigDecimal maximum);
 
     // TODO PR4 [Livello 3 - DERIVATA + JPQL, DUE METODI]
     // Dato String categoryName, trovare i prodotti della categoria con quel nome.
