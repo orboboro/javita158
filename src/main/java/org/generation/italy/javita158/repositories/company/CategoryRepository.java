@@ -3,13 +3,18 @@ package org.generation.italy.javita158.repositories.company;
 import org.generation.italy.javita158.model.company.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /** Esercizi sulle categorie. Leggere prima package-info.java; scrivere un metodo per TODO. */
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
-    // TODO CA1 [Livello 1 - DERIVATA]
+    // CA1 RISOLTO [Livello 1 - DERIVATA]
     // Cercare le categorie con categoryName uguale al parametro String name.
     // Restituire List<Category>: il mapping non dichiara il nome univoco.
     // Controllare anche un nome inesistente: il risultato deve essere una lista vuota.
+    // Spring interpreta CategoryName come l'attributo Java categoryName e usa l'uguaglianza.
+    // Non servono @Query né un'implementazione manuale. Vedere CategoryRepositoryTest.
+    List<Category> findByCategoryName(String name);
 
     // TODO CA2 [Livello 2 - DERIVATA]
     // Cercare le categorie la cui description contiene String text, ignorando il caso.

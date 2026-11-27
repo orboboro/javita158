@@ -1,10 +1,10 @@
 /**
- * Laboratorio COMPANY: query Spring Data JPA da scrivere, senza soluzioni già dichiarate.
+ * Laboratorio COMPANY: query Spring Data JPA da scrivere, con CA1 come esempio svolto.
  *
  * <h2>Da dove iniziare</h2>
  * <p>Le otto entity sono già mappate in model.company, adattate dall'esercizio di
  * CappelloMagico. I repository estendono JpaRepository: sono pronti per l'iniezione,
- * ma contengono soltanto TODO per le nuove query. Ogni TODO richiede di aggiungere
+ * e contengono TODO per le nuove query, tranne CA1 già risolto. Ogni TODO richiede di aggiungere
  * una dichiarazione di metodo; non un corpo Java che filtra findAll() con uno stream.</p>
  * <p>Prima di scrivere nuove query, provare i metodi ereditati findAll(), findById(id),
  * count() ed existsById(id). Non vanno ridefiniti. findById restituisce Optional:
@@ -82,6 +82,11 @@
  * (intera ricerca). Eseguire almeno una pagina piena per controllare il conteggio.
  * I test CompanyRepositoryExercisesTest verificano solo mapping, lettura e isolamento
  * dei profili: non correggono automaticamente le soluzioni che ancora non esistono.</p>
+ * <p>Per un esempio completo aprire CategoryRepositoryTest: verifica CA1 con dati
+ * inseriti nel test e annullati dal rollback di @DataJpaTest. Seguire i tre passi
+ * ARRANGE (preparazione), ACT (chiamata), ASSERT (verifica). Per scrivere test simili
+ * che inseriscono fixture non usare readOnly = true. Usare nomi riservati al proprio
+ * test, non cancellare i dati del database e non aggiungere @Commit.</p>
  *
  * <h2>Avvio: un database alla volta, nello stesso progetto</h2>
  * <p>PostgreSQL deve essere avviato e company già importato sul server della demo.
@@ -105,6 +110,8 @@
  * <pre>{@code
  * // Test di lettura del database company esistente:
  * mvn -B -Dtest=CompanyRepositoryExercisesTest test
+ * // Test della soluzione CA1, con fixture e rollback:
+ * mvn -B -Dtest=CategoryRepositoryTest test
  * // Tutti i test: servono company e il consueto tropico_test.
  * mvn -B test
  * }</pre>
