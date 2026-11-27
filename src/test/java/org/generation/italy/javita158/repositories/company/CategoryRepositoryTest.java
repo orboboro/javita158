@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Esecuzione: mvn -B -Dtest=CategoryRepositoryTest test
  */
 @DataJpaTest(showSql = false)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // In un caso reale, è buona norma sostituire il database con un database di test
 @ActiveProfiles("company")
 @Sql(statements = """
         insert into categories (categoryid, categoryname, description) values
@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         """)
 class CategoryRepositoryTest {
 
-    @Autowired
+    @Autowired // Segnala che facciamo field injaction: questa variabile sarà generata da Spring e iniettata come valore del field
     private CategoryRepository repository;
 
     @Test
