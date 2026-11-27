@@ -1,19 +1,15 @@
 package org.generation.italy.javita158.dtos.tropico;
-
 import org.generation.italy.javita158.model.tropico.Resource;
-
 import java.math.BigDecimal;
 
 public class ResourceDTO {
+
     private Integer id;
     private String name;
     private BigDecimal baseMarketPrice;
     private String processed;
-    public static final String PROCESSED = "Processed";
-    public static final String NOT_PROCESSED = "Not Processed";
-
-
-    public ResourceDTO() {} //serve per ricevere i DTO in entrata: Spring usa prima il costruttore di default
+    public final static String PROCESSED = "PROCESSED";
+    public final static String NOT_PROCESSED = "NOT_PROCESSED";
 
     public ResourceDTO(Resource r) {
         this.id = r.getId();
@@ -22,12 +18,15 @@ public class ResourceDTO {
         this.processed = r.getProcessed() ? PROCESSED : NOT_PROCESSED;
     }
 
+    public ResourceDTO() {
+    }
+
     public Resource toResource() {
         return new Resource(
-                id,
-                name,
-                baseMarketPrice,
-                processed.equals(PROCESSED));
+                this.id,
+                this.name,
+                this.baseMarketPrice,
+                this.processed.equals(PROCESSED));
     }
 
     public Integer getId() {
@@ -38,12 +37,12 @@ public class ResourceDTO {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getProcessed() {
+        return processed;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProcessed(String processed) {
+        this.processed = processed;
     }
 
     public BigDecimal getBaseMarketPrice() {
@@ -54,11 +53,11 @@ public class ResourceDTO {
         this.baseMarketPrice = baseMarketPrice;
     }
 
-    public String getProcessed() {
-        return processed;
+    public String getName() {
+        return name;
     }
 
-    public void setProcessed(String processed) {
-        this.processed = processed;
+    public void setName(String name) {
+        this.name = name;
     }
 }

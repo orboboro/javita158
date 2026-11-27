@@ -1,24 +1,24 @@
 package org.generation.italy.javita158.services.tropico;
 
-import org.generation.italy.javita158.model.tropico.Faction;
 import org.generation.italy.javita158.model.tropico.Resource;
-import org.generation.italy.javita158.repositories.tropico.FactionRepository;
 import org.generation.italy.javita158.repositories.tropico.ResourceRepository;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
-public class JpaTropicoService implements TropicoService{
-    private ResourceRepository resRepo;
-    private FactionRepository facRepo;
+@Service
+@Profile("jpa & !company")
+public class JpaTropicoService implements TropicoService {
 
-    public JpaTropicoService(ResourceRepository resRepo, FactionRepository facRepo) {
+    private final ResourceRepository resRepo;
+
+    public JpaTropicoService(ResourceRepository resRepo) {
         this.resRepo = resRepo;
         IO.println(resRepo.getClass().getName());
-        this.facRepo = facRepo;
     }
-
 
     @Override
     public Collection<Resource> getResources() {
@@ -26,24 +26,29 @@ public class JpaTropicoService implements TropicoService{
     }
 
     @Override
-    public Optional<Resource> findResourceById(int id) {
+    public Optional<Resource> findById(int id) {
         return resRepo.findById(id);
     }
 
     @Override
-    public boolean updateResource(int id, Resource newResource) {
+    @Transactional
+    public boolean update(int id, Resource newResource) {
         Optional<Resource> toUpdate = resRepo.findById(id);
-        if(toUpdate.isEmpty()) {
+        if (toUpdate.isEmpty()) {
             return false;
         }
-        resRepo.save(newResource);
+        Resource existing = toUpdate.get();
+        existing.setName(newResource.getName());
+        existing.setBaseMarketPrice(newResource.getBaseMarketPrice());
+        existing.setProcessed(newResource.getProcessed());
+        resRepo.save(existing);
         return true;
     }
 
     @Override
-    public boolean deleteResource(int id) {
+    public boolean delete(int id) {
         Optional<Resource> toDelete = resRepo.findById(id);
-        if(toDelete.isEmpty()) {
+        if (toDelete.isEmpty()) {
             return false;
         }
         resRepo.delete(toDelete.get());
@@ -51,68 +56,7 @@ public class JpaTropicoService implements TropicoService{
     }
 
     @Override
-    public Resource createResource(Resource r) {
+    public Resource create(Resource r) {
         return resRepo.save(r);
-    }
-
-    @Override
-    public Collection<Faction> getFactions() {
-        return facRepo.findAll();
-    }
-
-    @Override
-    public Optional<Faction> findFactionById(int id) {
-        return facRepo.findById(id);
-    }
-
-    @Override
-    public Faction createFaction(Faction faction) {
-        return facRepo.save(faction);
-    }
-
-    @Override
-    public boolean updateFaction(int id, Faction newFaction) {
-        Optional<Faction> toUpdate = facRepo.findById(id);
-        if(toUpdate.isEmpty()){
-            return false;
-        }
-        facRepo.save(newFaction);
-        return true;
-    }
-
-    @Override
-    public boolean deleteFaction(int id) {
-        Optional<Faction> toDelete = facRepo.findById(id);
-        if(toDelete.isEmpty()){
-            return false;
-        }
-        facRepo.delete(toDelete.get());
-        return true;
-    }
-
-    @Override
-    public Collection<Faction> findFactionsByNameStartingWith(String prefix) {
-        if (prefix == null) {
-            return facRepo.findAll();
-        }
-        String escaped = prefix.replace("!", "!!")
-                .replace("%", "!%")
-                .replace("_", "!_");
-        return facRepo.findByNameStartingWith(escaped + "%");
-    }
-
-    @Override
-    public List<Faction> findFactionsByMinimumMembers(int n) {
-        return List.of();
-    }
-
-    @Override
-    public List<Faction> findFactionsByMinimumRebelMembers(int n) {
-        return List.of();
-    }
-
-    @Override
-    public List<Faction> findFactionsWithRebelMembers() {
-        return List.of();
     }
 }
