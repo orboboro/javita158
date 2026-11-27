@@ -63,7 +63,7 @@ public interface ResourceRepository extends JpaRepository<Resource, Integer> {
             select r from Resource r
             where r.processed = true and r.baseMarketPrice < :maximum
             """)
-    List<Resource> findAffordableProcessedResourcesJpql(@Param("maximum") BigDecimal maximum);
+    List<Resource> findAffordableProcessedResourcesJpql(BigDecimal maximum);
 
     /** Al massimo tre risorse, dalla più cara. A parità di prezzo ordiniamo per id:
      * il secondo criterio rende il risultato deterministico. Non è una pagina. */

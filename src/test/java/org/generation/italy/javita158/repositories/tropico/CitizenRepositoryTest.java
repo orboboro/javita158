@@ -5,11 +5,20 @@ import org.generation.italy.javita158.model.tropico.BuildingType;
 import org.generation.italy.javita158.model.tropico.Citizen;
 import org.generation.italy.javita158.model.tropico.Faction;
 import org.generation.italy.javita158.model.tropico.Resource;
+import org.generation.italy.javita158.repositories.tropico.projections.BuildingWorkerSummary;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.repository.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -99,6 +108,126 @@ class CitizenRepositoryTest extends RepositoryTestSupport {
         }
         assertThat(repository.findWorkersInCategoryJpql("Government", PageRequest.of(0, 2)).getTotalElements())
                 .isZero();
+    }
+
+    @Test
+    void paginatedWorkerReportCountsBuildingsRatherThanCitizens() {
+        BuildingType type = buildingType(1, "Fabbrica", "Industry", 100, 4, null, null);
+        Building first = building(type, 3, true);
+        Building second = building(type, 3, true);
+        building(type, 3, true); // L'edificio senza lavoratori non compare nel report.
+        citizen("Uno", 30, "10", first, null, false, 60);
+        citizen("Due", 30, "10", first, null, false, 60);
+        citizen("Tre", 30, "10", second, null, false, 60);
+        citizen("Disoccupato", 30, "0", null, null, false, 60);
+        flushAndClear();
+
+        // Due edifici dello stesso tipo restano due gruppi distinti.
+        var firstPage = repository.countWorkersByBuilding(PageRequest.of(0, 1));
+        assertThat(firstPage.getContent())
+                .extracting(BuildingWorkerSummary::getBuildingId, BuildingWorkerSummary::getWorkerCount)
+                .containsExactly(tuple(first.getId(), 2L));
+        assertThat(firstPage.getTotalElements()).isEqualTo(2);
+        assertThat(firstPage.getTotalPages()).isEqualTo(2);
+        assertThat(firstPage.hasNext()).isTrue();
+
+        var secondPage = repository.countWorkersByBuilding(PageRequest.of(1, 1));
+        assertThat(secondPage.getContent())
+                .extracting(BuildingWorkerSummary::getBuildingId, BuildingWorkerSummary::getWorkerCount)
+                .containsExactly(tuple(second.getId(), 1L));
+        assertThat(secondPage.getTotalElements()).isEqualTo(2);
+        assertThat(secondPage.hasNext()).isFalse();
+    }
+
+    @Test
+    void singleWorkplaceWithManyWorkersIsOneReportResult() {
+        BuildingType type = buildingType(1, "Fabbrica", "Industry", 100, 12, null, null);
+        Building workplace = building(type, 3, true);
+        for (int i = 0; i < 12; i++) {
+            citizen("Lavoratore " + i, 30, "10", workplace, null, false, 60);
+        }
+        flushAndClear();
+
+        // Dimensione 1: la pagina è piena, quindi Spring deve ottenere il totale.
+        var page = repository.countWorkersByBuilding(PageRequest.of(0, 1));
+        assertThat(page.getContent())
+                .extracting(BuildingWorkerSummary::getBuildingId, BuildingWorkerSummary::getWorkerCount)
+                .containsExactly(tuple(workplace.getId(), 12L));
+        assertThat(page.getTotalElements()).isEqualTo(1);
+        assertThat(page.getTotalPages()).isEqualTo(1);
+        assertThat(page.hasNext()).isFalse();
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void explicitCountFixesGroupedFallback() {
+        // Nessuna transazione Spring: esercitiamo il fallback della versione 4.2.
+        // Una transazione JPA locale serve SOLO a isolare le fixture e annullarle:
+        // non viene registrata nel TransactionSynchronizationManager di Spring.
+        databaseContainsNoFixtureRows();
+        try (var localEntityManager = entityManager.getEntityManagerFactory().createEntityManager()) {
+            var transaction = localEntityManager.getTransaction();
+            transaction.begin();
+            try {
+                var type = new BuildingType(1, "Fabbrica", "Industry", 100,
+                        new BigDecimal("10.00"), 12, null, null, null);
+                localEntityManager.persist(type);
+                var workplace = new Building(null, type, 3, true);
+                localEntityManager.persist(workplace);
+                for (int i = 0; i < 12; i++) {
+                    localEntityManager.persist(new Citizen(null, "Lavoratore " + i, "Test", "N",
+                            30, "HighSchool", workplace, BigDecimal.TEN, null, "Poor", null, false, 60));
+                }
+                localEntityManager.flush();
+                localEntityManager.clear();
+
+                var factory = new JpaRepositoryFactory(localEntityManager);
+                var automatic = factory.getRepository(AutomaticallyCountedWorkerReport.class);
+                var explicit = factory.getRepository(CitizenRepository.class);
+                var pageable = PageRequest.of(0, 1);
+
+                var automaticPage = automatic.countWorkersByBuilding(pageable);
+                var explicitPage = explicit.countWorkersByBuilding(pageable);
+                assertThat(automaticPage.getContent()).hasSize(1);
+                assertThat(automaticPage.getTotalElements()).isEqualTo(12); // Errore del fallback!
+                assertThat(explicitPage.getContent())
+                        .extracting(BuildingWorkerSummary::getBuildingId, BuildingWorkerSummary::getWorkerCount)
+                        .containsExactly(tuple(workplace.getId(), 12L));
+                assertThat(explicitPage.getTotalElements()).isEqualTo(1);
+            } finally {
+                if (transaction.isActive()) {
+                    transaction.rollback();
+                }
+            }
+        } finally {
+            databaseContainsNoFixtureRows();
+        }
+    }
+
+    // Solo per il confronto nel test: stessa SELECT del repository, senza countQuery.
+    // Non è un bean dell'applicazione e non offre agli studenti un metodo errato da usare.
+    interface AutomaticallyCountedWorkerReport extends Repository<Citizen, Integer> {
+        @Query("""
+                select new org.generation.italy.javita158.repositories.tropico.projections.BuildingWorkerSummary(
+                    c.jobBuilding.id, count(c))
+                from Citizen c
+                where c.jobBuilding is not null
+                group by c.jobBuilding.id
+                order by c.jobBuilding.id
+                """)
+        Page<BuildingWorkerSummary> countWorkersByBuilding(Pageable pageable);
+    }
+
+    @Test
+    void workerReportIsEmptyWhenNobodyHasAJob() {
+        citizen("Disoccupato", 30, "0", null, null, false, 60);
+        flushAndClear();
+
+        // Pagina successiva vuota: il conteggio deve comunque restituire zero.
+        var page = repository.countWorkersByBuilding(PageRequest.of(1, 1));
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getTotalPages()).isZero();
     }
 
     @Test

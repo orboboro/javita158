@@ -1,6 +1,7 @@
 package org.generation.italy.javita158.repositories.tropico;
 
 import org.generation.italy.javita158.model.tropico.Citizen;
+import org.generation.italy.javita158.repositories.tropico.projections.BuildingWorkerSummary;
 import org.generation.italy.javita158.repositories.tropico.projections.CitizenFactionView;
 import org.generation.italy.javita158.repositories.tropico.projections.FactionSupportSummary;
 import org.springframework.data.domain.Page;
@@ -67,9 +68,10 @@ public interface CitizenRepository extends JpaRepository<Citizen, Integer> {
      * Esempio di ordine stabile: PageRequest.of(0, 10, Sort.by("lastName").and(Sort.by("id"))). */
     Page<Citizen> findByJobBuilding_BuildingType_Category(String category, Pageable pageable);
 
-    /** La SELECT carica solo la pagina; countQuery calcola il TOTALE dei cittadini
-     * che soddisfano gli stessi JOIN e filtri. Qui il COUNT esplicito è didattico:
-     * Spring potrebbe ricavarlo. Non contiene ORDER BY né FETCH, inutili al conteggio.
+    /** CASO A: countQuery esplicita RIDONDANTE, mantenuta per confronto con il report sotto.
+     * La SELECT carica solo la pagina; countQuery calcola il TOTALE dei cittadini
+     * che soddisfano gli stessi JOIN e filtri. Si può rimuovere countQuery:
+     * Spring ricava automaticamente il conteggio. Non contiene ORDER BY né FETCH.
      * I JOIN ManyToOne non duplicano c: COUNT(c) è sufficiente. Con JOIN a collezioni
      * bisognerebbe ragionare su DISTINCT sia nella SELECT sia nel COUNT. */
     @Query(value = """
@@ -82,6 +84,39 @@ public interface CitizenRepository extends JpaRepository<Citizen, Integer> {
             where bt.category = :category
             """)
     Page<Citizen> findWorkersInCategoryJpql(@Param("category") String category, Pageable pageable);
+
+    /** CASO B: una riga per edificio con lavoratori; il totale deve contare EDIFICI.
+     * Esempio: 12 lavoratori nello stesso edificio -> una riga del report, totale = 1.
+     * SELECT NEW costruisce un DTO concreto: Integer per l'id, Long per COUNT.
+     * I disoccupati e gli edifici senza lavoratori sono esclusi.
+     *
+     * Perché specificare countQuery? Un conteggio derivato che mantiene GROUP BY
+     * restituisce i conteggi dei singoli gruppi (es. 12), non il numero di gruppi (1).
+     * Il percorso di fallback di Spring Data interpreta un unico conteggio come il
+     * totale: in quel caso countQuery è necessaria per evitare totale = 12.
+     * Con Spring Data JPA 4.2/Hibernate, dentro una transazione gestita da Spring
+     * il conteggio può essere delegato a Hibernate ed essere corretto anche senza
+     * countQuery; senza tale transazione si usa il fallback. Non è quindi una
+     * regola per ogni GROUP BY. Il test explicitCountFixesGroupedFallback mostra
+     * il confronto fra totale automatico = 12 e totale esplicito = 1.
+     *
+     * COUNT(DISTINCT ...) restituisce sempre un solo totale corretto, anche con
+     * zero o un solo gruppo. Provare PageRequest.of(0, 1): una pagina piena richiede
+     * il conteggio; una pagina incompleta può consentire a Spring di dedurre il totale.
+     */
+    @Query(value = """
+            select new org.generation.italy.javita158.repositories.tropico.projections.BuildingWorkerSummary(
+                c.jobBuilding.id, count(c))
+            from Citizen c
+            where c.jobBuilding is not null
+            group by c.jobBuilding.id
+            order by c.jobBuilding.id
+            """, countQuery = """
+            select count(distinct c.jobBuilding.id)
+            from Citizen c
+            where c.jobBuilding is not null
+            """)
+    Page<BuildingWorkerSummary> countWorkersByBuilding(Pageable pageable);
 
     // 4. JPQL ESPRESSIVO: parentesi e catene di JOIN.
 

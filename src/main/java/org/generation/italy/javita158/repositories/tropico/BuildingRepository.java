@@ -91,6 +91,6 @@ public interface BuildingRepository extends JpaRepository<Building, Integer> {
      * leggere il nome del tipo per ciascun edificio può causare SELECT aggiuntive
      * (problema N+1, a seconda della cache). Non risolviamo rendendo tutto EAGER.
      * La relazione obbligatoria permette INNER JOIN FETCH senza perdere edifici. */
-    @Query("select b from Building b join fetch b.buildingType where b.active = true order by b.id")
+    @Query("select b from Building b  where b.active = true order by b.id")
     List<Building> findActiveWithTypeJpql();
 }
