@@ -19,6 +19,8 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
     // TODO CA2 [Livello 2 - DERIVATA]
     // Cercare le categorie la cui description contiene String text, ignorando il caso.
     // Restituire List<Category>, ordinata per categoryName crescente e poi id crescente.
+    List<Category> findByDescriptionContainingIgnoreCaseOrderByCategoryNameAscIdAsc(String text);
+
 
     // TODO CA3 [Livello 3 - JPQL]
     // Riscrivere CA1 con @Query e un parametro nominato collegato da @Param.

@@ -4,12 +4,15 @@ import org.generation.italy.javita158.model.company.OrderDetail;
 import org.generation.italy.javita158.model.company.OrderDetailId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /** Una riga d'ordine ha chiave composta (orderId, productId), non un Integer. */
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, OrderDetailId> {
 
     // TODO OD1 [Livello 2 - DERIVATA]
     // Dato Integer minimum, trovare i dettagli con quantity >= minimum.
     // Restituire List<OrderDetail>. L'attributo Java è quantity, la colonna SQL è qty.
+    List<OrderDetail> findByQuantityGreaterThanEqual(Integer minimum);
 
     // TODO OD2 [Livello 3 - DERIVATA]
     // Dato Integer orderId, restituire tutti i dettagli di quell'ordine: List<OrderDetail>.

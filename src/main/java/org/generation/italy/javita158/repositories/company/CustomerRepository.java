@@ -1,7 +1,10 @@
 package org.generation.italy.javita158.repositories.company;
 
+import org.generation.italy.javita158.model.company.Category;
 import org.generation.italy.javita158.model.company.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
 
 /** Esercizi sui clienti: dai filtri a un report sugli ordini. */
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
@@ -9,18 +12,22 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     // TODO CU1 [Livello 1 - DERIVATA]
     // Dato String country, restituire List<Customer> dei clienti di quel paese.
     // Il confronto è esatto; non è richiesta una conversione maiuscole/minuscole.
+    List<Customer> findByCountry(String country);
 
     // TODO CU2 [Livello 1 - DERIVATA]
     // Restituire List<Customer> dei clienti con region null. Nessun parametro.
     // Una stringa vuota non equivale a null.
+    List<Customer> findByRegionNull();
 
     // TODO CU3 [Livello 2 - DERIVATA]
     // Dati String country e String city, restituire i clienti che soddisfano ENTRAMBI.
     // Restituire List<Customer>, ordinata per companyName crescente, poi id crescente.
+    List<Customer> findByCountryAndCityOrderByCompanyNameAscIdAsc(String country, String city);
 
     // TODO CU4 [Livello 2 - DERIVATA]
     // Dato String text, cercare companyName che CONTIENE il testo, ignorando il caso.
     // Restituire List<Customer>. Provare la stessa parola con maiuscole diverse.
+    List<Customer> findByCompanyNameContainingIgnoreCase(String text);
 
     // TODO CU5 [Livello 3 - JPQL]
     // Riscrivere CU3 con @Query, parametri nominati e lo stesso ordinamento.

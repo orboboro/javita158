@@ -3,20 +3,27 @@ package org.generation.italy.javita158.repositories.company;
 import org.generation.italy.javita158.model.company.Employee;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
 /** Date e relazione ricorsiva: Employee.manager è un altro Employee. */
 public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
 
     // TODO EM1 [Livello 1 - DERIVATA]
     // Dato String lastName, trovare i dipendenti con quel cognome: List<Employee>.
     // Il cognome non identifica una sola persona: non restituire Optional<Employee>.
+    List<Employee> findByLastName(String lastName);
 
     // TODO EM2 [Livello 1 - DERIVATA]
     // Restituire List<Employee> dei dipendenti senza manager. Nessun parametro.
+    List<Employee> findByManagerNull();
 
     // TODO EM3 [Livello 2 - DERIVATA]
     // Dato LocalDateTime cutoff, trovare i dipendenti assunti PRIMA di cutoff.
     // Restituire List<Employee>, ordinata per hireDate crescente e poi id.
     // Un'assunzione esattamente a cutoff non deve essere inclusa.
+    List<Employee> findByHireDateBeforeOrderByHireDateAscIdAsc(LocalDateTime cutoff);
 
     // TODO EM4 [Livello 3 - DERIVATA + JPQL, DUE METODI]
     // Dato Integer managerId, trovare i subordinati DIRETTI di quel responsabile.
