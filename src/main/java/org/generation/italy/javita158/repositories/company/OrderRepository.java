@@ -3,17 +3,22 @@ package org.generation.italy.javita158.repositories.company;
 import org.generation.italy.javita158.model.company.Order;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /** Ordini: date, relazioni facoltative e filtri attraverso più entity. */
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     // TODO OR1 [Livello 1 - DERIVATA]
     // Trovare gli ordini non ancora spediti: shippedDate null. Restituire List<Order>.
+	List<Order> findByShippedDateIsNull();
 
     // TODO OR2 [Livello 2 - DERIVATA]
     // Dati LocalDateTime start e end, trovare gli ordini con orderDate nell'intervallo
     // [start, end): start INCLUSO, end ESCLUSO. Restituire List<Order> per orderDate e id.
     // Qui Between non rappresenta i confini richiesti. Per un giorno, end è la
     // mezzanotte del giorno successivo, non le 23:59:59 del giorno iniziale.
+	List<Order> findByOrderDateGreaterThanEqualAndOrderDateLessThanOrderByOrderDateAscIdAsc (LocalDateTime start, LocalDateTime end);
 
     // TODO OR3 [Livello 3 - DERIVATA + JPQL, DUE METODI]
     // Dato String country, trovare gli ordini di clienti residenti in quel paese.
