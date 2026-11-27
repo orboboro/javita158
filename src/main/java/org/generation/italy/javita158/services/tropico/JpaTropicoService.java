@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Service
-@Profile("jpa")
+@Profile("jpa & !company")
 public class JpaTropicoService implements TropicoService {
 
     private final ResourceRepository resRepo;

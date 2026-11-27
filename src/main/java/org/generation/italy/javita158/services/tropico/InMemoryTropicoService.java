@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service // Comunica a spring che la classe seguente è una componente iniettabile, così che qaundo incontra un costruttore che si aspetta una variabile da iniettare di questo tipo, capisce che deve creare  einiettare un oggetto di questo tipo
-@Profile("in-memory")
+@Profile("in-memory & !company")
 public class InMemoryTropicoService implements TropicoService {
 
     private static int idGenerator = 3;

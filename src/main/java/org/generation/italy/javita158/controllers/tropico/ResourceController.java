@@ -3,6 +3,7 @@ package org.generation.italy.javita158.controllers.tropico;
 import org.generation.italy.javita158.dtos.tropico.ResourceDTO;
 import org.generation.italy.javita158.model.tropico.Resource;
 import org.generation.italy.javita158.services.tropico.TropicoService;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.Optional;
 
 @RestController
+@Profile("!company")
 @RequestMapping("/api/resource") // Questo controller si rende disponibile a ricevere tutte le chiamate che cominciano
                                  // con questa sringa (sarà il dispatcher servlet a smistare le richieste guardando a quali
                                  // sono accettate da quali Controller)
